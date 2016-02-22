@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
@@ -34,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
         //将正则表达式赋予生成的Pattern类
-        Pattern pattern = Pattern.compile("(?<!\\\\d)\\\\d{6}(?!\\\\d)");
+        Pattern pattern = Pattern.compile("(?<!\\d)\\d{6}(?!\\d)");
         //将要匹配的内容赋予生成的Matcher类
         Matcher matcher = pattern.matcher(patternContent);
         //尝试在目标字符串里查找下一个匹配字符串
@@ -55,7 +56,9 @@ public class MainActivity extends AppCompatActivity {
         confirmButton =(Button) findViewById(R.id.confirm_button);
         //获取本机号码目前没有比较方便的方法，较简单的是读取sim卡，较成功的是发短信给服务商来读取发送号码
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        phoneNumEditText.setText(telephonyManager.getLine1Number());
+        if(!TextUtils.isEmpty(telephonyManager.getLine1Number())){
+            phoneNumEditText.setText(telephonyManager.getLine1Number());
+        }
         //刷新UI要用到handler传送消息
         handler = new Handler() {
             public void handleMessage(Message message){
