@@ -33,6 +33,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
+            android:inputType="number"
             android:hint="请输入收到的验证码"/>
         <Button
             android:id="@+id/confirm_button"

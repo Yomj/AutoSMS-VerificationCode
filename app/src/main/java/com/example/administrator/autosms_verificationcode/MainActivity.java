@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.CountDownTimer;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private Button sendButton,confirmButton;
     private Handler handler;
     private String verCode;
+    private countDownTimer cDTimer;
     private BroadcastReceiver broadcastReceiver;
 
     //匹配验证码
@@ -46,6 +49,24 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
+    private class countDownTimer extends CountDownTimer{
+        public countDownTimer(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onFinish() {
+            sendButton.setText("重新发送");
+            sendButton.setClickable(true);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            sendButton.setClickable(false);
+            sendButton.setText(millisUntilFinished/1000 + "秒后可重新发送");
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,15 +75,46 @@ public class MainActivity extends AppCompatActivity {
         verificationCodeEditText = (EditText) findViewById(R.id.ver_code_edit_text);
         sendButton = (Button) findViewById(R.id.send_ver_code_button);
         confirmButton =(Button) findViewById(R.id.confirm_button);
+        phoneNumEditText.setText("");
+        verificationCodeEditText.setText("");
+        cDTimer = new countDownTimer(60000,1000);
         //获取本机号码目前没有比较方便的方法，较简单的是读取sim卡，较成功的是发短信给服务商来读取发送号码
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         if(!TextUtils.isEmpty(telephonyManager.getLine1Number())){
             phoneNumEditText.setText(telephonyManager.getLine1Number());
         }
+        View.OnClickListener onClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switch(v.getId()){
+                    case R.id.send_ver_code_button:
+                        /*发送手机号码到服务器，服务器发送验证码到手机
+                        do something;*/
+                        cDTimer.start();
+                        break;
+                    case R.id.confirm_button:
+                        //验证填写的验证码，正确就登入，错误就弹Toast
+                        break;
+                    default:
+                        break;
+                }
+            }
+        };
+        sendButton.setOnClickListener(onClickListener);
+        confirmButton.setOnClickListener(onClickListener);
         //刷新UI要用到handler传送消息
         handler = new Handler() {
             public void handleMessage(Message message){
-                verificationCodeEditText.setText(verCode);
+                switch (message.what){
+                    /*case 0:
+                        sendButton.setText("重新发送(" + time + ")");
+                        break;*/
+                    case 1:
+                        verificationCodeEditText.setText(verCode);
+                        break;
+                    default:
+                        break;
+                }
             }
         };
         //创建一个意图过滤器，接收收到短信时的广播
